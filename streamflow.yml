@@ -1,0 +1,24 @@
+#!/usr/bin/env streamflow
+version: v1.0
+workflows:
+  master:
+    type: cwl
+    config:
+      file: main.cwl
+      settings: config.yml
+
+failureManager:
+  enabled: True
+  type: default
+  config:
+    max_retries: 100
+    retry_delay: 5
+
+scheduling:
+  scheduler:
+    type: default
+    config:
+      retry_delay: 10
+
+checkpointManager:
+  enabled: False
