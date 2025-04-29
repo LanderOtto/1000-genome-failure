@@ -6,12 +6,40 @@ workflows:
     config:
       file: main.cwl
       settings: config.yml
+    bindings:
+      - step: /
+        target:
+          - deployment: image1
+          - deployment: image2
+          - deployment: image3
+          - deployment: image4
+
+deployments:
+  image1:
+    type: docker
+    config:
+      image: mul8/dummyfailure
+
+  image2:
+    type: docker
+    config:
+      image: mul8/dummyfailure
+
+  image3:
+    type: docker
+    config:
+      image: mul8/dummyfailure
+  
+  image4:
+    type: docker
+    config:
+      image: mul8/dummyfailure
 
 failureManager:
   enabled: True
   type: default
   config:
-    max_retries: 100
+    max_retries: 10000
     retry_delay: 5
 
 scheduling:
@@ -20,5 +48,12 @@ scheduling:
     config:
       retry_delay: 10
 
-checkpointManager:
-  enabled: False
+bindingFilters:
+  random:
+    type: shuffle
+    config: { }
+
+database:
+  type: default
+  config:
+    connection: /home/alberto/Work/Workflows/1000Genome/streamflow-wf/.streamflow/sqlite.db

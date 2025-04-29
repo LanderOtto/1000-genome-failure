@@ -21,11 +21,9 @@ s:programmingLanguage: Python
 requirements:
   InitialWorkDirRequirement:
     listing: [ $(inputs.input_file), $(inputs.columns_file), $(inputs.sift_file), $(inputs.population) ]
-  DockerRequirement:
-    dockerPull: mul8/dummyfailure
   EnvVarRequirement:
     envDef:
-      DUMMYFAILURE_PROBABILITY: "0"
+      DUMMYFAILURE_PROBABILITY: "0.5"
 
 baseCommand: [ "dummyfailure", "mutation_overlap" ]
 

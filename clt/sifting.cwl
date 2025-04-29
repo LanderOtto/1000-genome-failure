@@ -19,8 +19,9 @@ s:license: https://spdx.org/licenses/Apache-2.0
 s:programmingLanguage: Bash
 
 requirements:
-  DockerRequirement:
-    dockerPull: mul8/dummyfailure
+  EnvVarRequirement:
+    envDef:
+      DUMMYFAILURE_PROBABILITY: "0"
 
 baseCommand: [ "dummyfailure", "sifting" ]
 

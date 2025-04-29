@@ -22,11 +22,9 @@ requirements:
   InitialWorkDirRequirement:
     listing:
       - entry:$(inputs.columns_file)
-  DockerRequirement:
-    dockerPull: mul8/dummyfailure
   EnvVarRequirement:
     envDef:
-      DUMMYFAILURE_PROBABILITY: "0.5"
+      DUMMYFAILURE_PROBABILITY: "0.4"
 
 baseCommand: [ "dummyfailure", "individuals" ]
 

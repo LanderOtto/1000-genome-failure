@@ -21,8 +21,9 @@ s:programmingLanguage: Bash
 requirements:
   InitialWorkDirRequirement:
     listing: $(inputs.individuals)
-  DockerRequirement:
-    dockerPull: mul8/dummyfailure
+  EnvVarRequirement:
+    envDef:
+      DUMMYFAILURE_PROBABILITY: "0.5"
 
 baseCommand: [ "dummyfailure", "individuals_merge" ]
 
