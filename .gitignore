@@ -178,3 +178,4 @@ data/
 scripts/cpp/
 *.out
 *.bak
+dev/
