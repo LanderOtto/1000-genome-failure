@@ -62,7 +62,9 @@ def main(args):
                     locations[event["location"]] = f"image{len(locations)}"
                 location = locations[event["location"]]
 
-            elif status == "RUNNING" and (start_time is None or last_status == "ALLOCATED"):
+            elif status == "RUNNING" and (
+                start_time is None or last_status == "ALLOCATED"
+            ):
                 start_time = event["time"]
             elif status in {"COMPLETED", "ERROR"} and last_status == "RUNNING":
                 tasks.append(
@@ -81,7 +83,9 @@ def main(args):
                 pass
             elif last_status == "ALLOCATED" and status == "ERROR":
                 error_type = event.get("error_type", "unknown")
-                print(f"WARNING: job {job_name} from {last_status} to {status}: err: {error_type} ")
+                print(
+                    f"WARNING: job {job_name} from {last_status} to {status}: err: {error_type} "
+                )
             elif last_status == "ALLOCATED" and status == "RUNNING":
                 print(f"WARNING: job {job_name} from {last_status} to {status} ")
             elif last_status == "RECOVERY" and status == "RUNNING":
@@ -91,7 +95,7 @@ def main(args):
             elif last_status == "ALLOCATED" and status == "COMPLETED":
                 print(f"WARNING: job {job_name} from {last_status} to {status} ")
             else:
-                    raise ValueError(f"Unknown event status: {last_status} -> {status}")
+                raise ValueError(f"Unknown event status: {last_status} -> {status}")
             if status == "ERROR":
                 error_type = event.get("error_type", "unknown")
                 error_points.append((job_name, event["time"], error_type))
@@ -126,6 +130,9 @@ def main(args):
             ["/", "x", "o", "O", ".", "*", "\\", "+", "|", "-"],
         )
     )
+    location_color = dict(
+        zip(locations.values(), ["lightgreen", "peachpuff", "lightblue", "orchid"])
+    )
 
     # Collect all used error types to generate legend dynamically
     used_error_types = set(et for _, _, et in error_points)
@@ -139,14 +146,14 @@ def main(args):
     bar_height = 0.6
     for job_name, start, duration, status, location in tasks:
         y = job_to_y[job_name]
-        color = status_colors[status]
+        color = location_color[location]  # status_colors[status]
         ax.barh(
             y=y,
             width=duration.total_seconds(),
             left=start.total_seconds(),
             height=bar_height,
             color=color,
-            hatch=hatch_patterns[location],
+            # hatch=hatch_patterns[location],
         )
 
     # Plot error points
@@ -169,15 +176,20 @@ def main(args):
     ax.set_xlabel("Time (seconds)", fontsize=fontsize)
     ax.grid(True)
     plt.title("Job Execution with Errors", fontsize=fontsize)
-    legend_elements = [
-        Patch(facecolor="green", label="COMPLETED"),
-        Patch(facecolor="red", label="ERROR"),
-    ]
 
-    legend_elements.extend(
-        Patch(facecolor="white", edgecolor="black", hatch=hatch * 3, label=location)
-        for location, hatch in hatch_patterns.items()
-    )
+    legend_elements = [
+        Patch(facecolor=color, label=f"Location: {location}")
+        for location, color in location_color.items()
+    ]
+    # legend_elements = [
+    #     Patch(facecolor="green", label="COMPLETED"),
+    #     Patch(facecolor="red", label="ERROR"),
+    # ]
+
+    # legend_elements.extend(
+    #     Patch(facecolor="white", edgecolor="black", hatch=hatch * 3, label=location)
+    #     for location, hatch in hatch_patterns.items()
+    # )
 
     # Add error marker legends
     for etype in sorted(used_error_types):

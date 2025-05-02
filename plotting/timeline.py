@@ -57,6 +57,7 @@ def main(args):
         r"^Expected (\S+) token of type (\S+), got (\S+)\.$"
     )
     output_process_2_pattern = re.compile(r"Token (\S+) is not optional")
+    output_process_3_pattern = re.compile(r"File (.+) does not exist$")
 
     allocation_pattern = re.compile(
         r"^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3})\s+DEBUG\s+Job\s+([^\s]+)\s+allocated\s+(.+)$"
@@ -113,14 +114,14 @@ def main(args):
                         "location": location_name,
                     }
                 )
-            elif  (match_ := error_line_pattern.match(line)):
+            elif match_ := error_line_pattern.match(line):
                 timestamp, error_message = match_.groups()
                 timestamp = (
                     datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
                     - workflow_start
                 )
                 if failed_job_pattern.match(error_message):
-                    error_type =  "executing"
+                    error_type = "executing"
                 elif (
                     transfer_error_1_pattern.match(error_message)
                     or transfer_error_2_pattern.match(error_message)
@@ -128,9 +129,11 @@ def main(args):
                     or transfer_error_4_pattern.match(error_message)
                 ):
                     error_type = "transferring"
-                elif output_process_1_pattern.match(
-                    error_message
-                ) or output_process_2_pattern.match(error_message):
+                elif (
+                    output_process_1_pattern.match(error_message)
+                    or output_process_2_pattern.match(error_message)
+                    or output_process_3_pattern.match(error_message)
+                ):
                     error_type = "retrieving"
                 elif scheduling_pattern.match(error_message):
                     error_type = "initializing"
