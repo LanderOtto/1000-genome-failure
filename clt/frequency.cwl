@@ -23,7 +23,7 @@ requirements:
     listing: [ $(inputs.input_file), $(inputs.columns_file), $(inputs.sift_file), $(inputs.population) ]
   EnvVarRequirement:
     envDef:
-      DUMMYFAILURE_PROBABILITY: "0.5"
+      DUMMYFAILURE_PROBABILITY: "0.4"
 
 baseCommand: [ "dummyfailure", "frequency" ]
 

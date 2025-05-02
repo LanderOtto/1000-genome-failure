@@ -20,8 +20,8 @@ populations:
 sift_files:
   - class: File
     path: data/20130502/sifting/ALL.chr1.phase3_shapeit2_mvncall_integrated_v5.20130502.sites.annotation.vcf
-  - class: File
-    path: data/20130502/sifting/ALL.chr2.phase3_shapeit2_mvncall_integrated_v5.20130502.sites.annotation.vcf
+  # - class: File
+  #   path: data/20130502/sifting/ALL.chr2.phase3_shapeit2_mvncall_integrated_v5.20130502.sites.annotation.vcf
   # - class: File
   #   path: data/20130502/sifting/ALL.chr3.phase3_shapeit2_mvncall_integrated_v5.20130502.sites.annotation.vcf.gz
   # - class: File
@@ -41,8 +41,8 @@ sift_files:
 snp_files:
   - class: File
     location: data/20130502/ALL.chr1.250000.vcf
-  - class: File
-    location: data/20130502/ALL.chr2.250000.vcf
+  # - class: File
+  #   location: data/20130502/ALL.chr2.250000.vcf
   # - class: File
   #   location: data/20130502/ALL.chr3.250000.vcf.gz
   # - class: File

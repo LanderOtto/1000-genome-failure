@@ -179,3 +179,5 @@ scripts/cpp/
 *.out
 *.bak
 dev/
+*.png 
+*.pdf

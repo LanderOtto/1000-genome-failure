@@ -64,14 +64,15 @@ def main(args):
     local_alloc_pattern = re.compile(r"locally$")
     remote_alloc_pattern = re.compile(r"on location\s+(.+)$")
 
-    storage_size_err_pattern =  re.compile(r"Storage (.+) with (.+) paths cannot have negative size: (.+)$")
+    storage_size_err_pattern = re.compile(
+        r"Storage (.+) with (.+) paths cannot have negative size: (.+)$"
+    )
 
-    jobs = {}
-    failures = {}
-    errors = []
+    combined = {}
     workflow_start = None
     with open(args.logfile) as fd:
         for line in fd.readlines():
+            timestamp, job_name, status, location = None, None, None, None
             if workflow_start is None:
                 workflow_start = datetime.strptime(
                     " ".join(line.split(" ")[:2]), "%Y-%m-%d %H:%M:%S.%f"
@@ -82,7 +83,7 @@ def main(args):
                     datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
                     - workflow_start
                 )
-                jobs.setdefault(job_name, []).append(
+                combined.setdefault(job_name, []).append(
                     {"time": timestamp, "status": status}
                 )
             elif match_ := pattern_handling.match(line):
@@ -91,9 +92,10 @@ def main(args):
                     datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
                     - workflow_start
                 )
-                failures.setdefault(job_name, []).append(
-                    {"time": timestamp, "type": failure_type}
+                combined.setdefault(job_name, []).append(
+                    {"time": timestamp, "status": "ERROR", "error_type": error_type}
                 )
+                error_type = None
             elif match_ := allocation_pattern.match(line):
                 timestamp, job_name, allocation = match_.groups()
                 if match_ := local_alloc_pattern.match(allocation):
@@ -104,84 +106,63 @@ def main(args):
                     datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
                     - workflow_start
                 )
-                jobs.setdefault(job_name, []).append(
+                combined.setdefault(job_name, []).append(
                     {
                         "time": timestamp,
                         "status": "ALLOCATED",
                         "location": location_name,
                     }
                 )
-            elif match_ := error_line_pattern.match(line):
+            elif  (match_ := error_line_pattern.match(line)):
                 timestamp, error_message = match_.groups()
                 timestamp = (
                     datetime.strptime(timestamp, "%Y-%m-%d %H:%M:%S.%f")
                     - workflow_start
                 )
                 if failed_job_pattern.match(error_message):
-                    errors.append({"time": timestamp, "message": "executing"})
+                    error_type =  "executing"
                 elif (
                     transfer_error_1_pattern.match(error_message)
                     or transfer_error_2_pattern.match(error_message)
                     or transfer_error_3_pattern.match(error_message)
                     or transfer_error_4_pattern.match(error_message)
                 ):
-                    errors.append({"time": timestamp, "message": "transferring"})
+                    error_type = "transferring"
                 elif output_process_1_pattern.match(
                     error_message
                 ) or output_process_2_pattern.match(error_message):
-                    errors.append({"time": timestamp, "message": "retrieving"})
+                    error_type = "retrieving"
                 elif scheduling_pattern.match(error_message):
-                    errors.append({"time": timestamp, "message": "initializing"})
+                    error_type = "initializing"
                 elif storage_size_err_pattern.match(error_message):
                     print("Warning: storage size error")
+                    error_type = "scheduling"
+                elif error_message == "FAILED Workflow execution":
+                    print("Warning: failed workflow")
                 else:
                     raise Exception(f"Unexpected error: {error_message}")
+                # combined.setdefault(job_name, []).append(
+                #     {
+                #         "time": timestamp,
+                #         "status": "ERROR",
+                #         "error_type": error_type,
+                #     }
+                # )
     # print(serialize_jobs(jobs))
     # print(serialize_jobs(failures))
-
-    combined_results = {}
-    for job_name, job_list in jobs.items():
-        for job in job_list:
-            kargs = {}
-            if job["status"] == "RECOVERY":
-                err = {
-                    "time": None,
-                    "status": "ERROR",
-                    "error_type": None,
-                }
-                combined_results.setdefault(job_name, []).append(err)
-                for failure in failures.get(job_name, []):
-                    if nearest_err := find_nearest_error(failure["time"], errors):
-                        if failure["type"] == "command":
-                            if nearest_err[1]["message"] != "executing":
-                                raise Exception(
-                                    f"Invalid combination of error type and message: {failure['type']} {nearest_err[1]['message']}"
-                                )
-                        elif failure["type"] != "WorkflowExecutionException":
-                            raise Exception(
-                                f"Invalid combination of error type and message: {failure['type']} {nearest_err[1]['message']}"
-                            )
-                        err["time"] = nearest_err[0]
-                        err["error_type"] = nearest_err[1]["message"]
-            elif job["status"] == "ALLOCATED":
-                kargs |= {"location": job["location"]}
-            combined_results.setdefault(job_name, []).append(
-                {"time": job["time"], "status": job["status"]} | kargs
-            )
-
-    # print(json.dumps(serialize_jobs(combined_results), indent=2))
+    # print(json.dumps(serialize_jobs(combined), indent=2))
     print(
         "Number of steps",
         len(
             {
                 s
-                for s in combined_results.keys()
+                for s in combined.keys()
                 if "-injector" not in s and "-collector" not in s
             }
         ),
     )
     with open("timeline.json", "w") as fd:
-        json.dump(serialize_jobs(combined_results), fd, indent=2)
+        json.dump(serialize_jobs(combined), fd, indent=2)
 
 
 if __name__ == "__main__":

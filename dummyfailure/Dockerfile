@@ -11,7 +11,7 @@ RUN apk add --no-cache \
 
 # Create Python env
 RUN python3 -m venv /venv
-RUN source /venv/bin/activate
+RUN source /venv/bin/activate && pip install psutil
 
 # Copy data
 COPY main.py /tmp

@@ -1,11 +1,11 @@
 import argparse
 import json
+from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
 import pandas as pd
-import plotly.io as pio
 import plotly.express as px
-from datetime import datetime, timedelta
+import plotly.io as pio
 
 
 def str_to_timedelta(time_str):
