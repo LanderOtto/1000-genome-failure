@@ -102,7 +102,7 @@ def main(args):
             last_status = status
     # Assign unique y-positions to jobs
     job_to_y = {
-        job: i
+        os.path.dirname(job) + "." + job.split(".")[-1] if args.cut_tag else job: i
         for i, job in enumerate(
             sorted(
                 set(job for job, _, _, _, _ in tasks).union(
@@ -145,6 +145,8 @@ def main(args):
     fig, ax = plt.subplots(figsize=(width, height))
     bar_height = 0.6
     for job_name, start, duration, status, location in tasks:
+        if args.cut_tag:
+            job_name = os.path.dirname(job_name) + "." + job_name.split(".")[-1]
         y = job_to_y[job_name]
         color = location_color[location]  # status_colors[status]
         ax.barh(
@@ -158,6 +160,8 @@ def main(args):
 
     # Plot error points
     for job_name, time, error_type in error_points:
+        if args.cut_tag:
+            job_name = os.path.dirname(job_name) + "." + job_name.split(".")[-1]
         y = job_to_y[job_name]
         marker = error_markers.get(error_type, "*")
         ax.plot(
@@ -207,12 +211,58 @@ def main(args):
         )
 
     ax.legend(handles=legend_elements, title="Job status", fontsize=fontsize)
+    if args.paper_text:
+        xlim = plt.xlim()
+        ylim = plt.ylim()
+        center_x = (xlim[0] + xlim[1]) / 2
+        center_y = (ylim[0] + ylim[1]) / 2
+
+        text = "A location error occurred on image1\nwhile the input data for the merge step were being copied.\nThis requires the recovery of the individuals.0 step."
+        plt.text(
+            center_x - 65,
+            center_y + 5,
+            text,
+            fontsize=18,
+            color="black",
+            ha="center",
+            va="center",
+        )
+
+        plt.annotate(
+            "",
+            xy=(center_x + 50, center_y - 2),  # end
+            xytext=(center_x + 30, center_y + 4),  # start
+            arrowprops=dict(arrowstyle="->", color="black", lw=2),
+            fontsize=12,
+            color="blue",
+        )
+        text = "The mutation.overlap.0 and frequency.0 steps\nrequire the output of sifting.0.\nThey will synchronize to recover the lost data."
+        plt.text(
+            center_x + 50,
+            center_y - 3,
+            text,
+            fontsize=18,
+            color="black",
+            ha="center",
+            va="center",
+        )
+        plt.annotate(
+            "",
+            xy=(center_x + 50, center_y - 4),  # end
+            xytext=(center_x + 30, center_y - 11),  # start
+            arrowprops=dict(arrowstyle="->", color="black", lw=2),
+            fontsize=12,
+            color="blue",
+        )
+
     plt.tight_layout()
-    save_plot_with_prefix("myplot")
+    save_plot_with_prefix("myplot", format_="pdf")
     plt.show()
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("timeline", help="Timeline file")
+    parser.add_argument("--cut-tag", action="store_true")
+    parser.add_argument("--paper-text", action="store_true")
     main(parser.parse_args())

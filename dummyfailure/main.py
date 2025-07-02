@@ -3,6 +3,7 @@ import hashlib
 import os
 import random
 import shutil
+import time
 from pathlib import Path, PurePath
 
 
@@ -58,6 +59,8 @@ def main(args):
         )
 
     if random.random() < failure_probability:
+        if random.random() < 0.5:
+            time.sleep(2)
         print(f"Workdir will be deleted: {os.path.dirname(os.getcwd())}")
         shutil.rmtree(os.path.dirname(os.getcwd()))
         raise Exception("Dummy failure raised an exception")

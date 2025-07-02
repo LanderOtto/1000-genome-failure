@@ -9,18 +9,34 @@ workflows:
     bindings:
       - step: /
         target:
+          - deployment: image0
           - deployment: image1
+      - step: /chromosome/frequency
+        target:
           - deployment: image2
-          - deployment: image3
-          - deployment: image4
+      - step: /chromosome/sifting
+        target:
+          - deployment: image0
+      - step: /chromosome/mutation_overlap
+        target:
+          - deployment: image2
 
 deployments:
+  image0:
+    type: docker
+    lazy: false
+    config:
+      image: mul8/dummyfailure
+      cpus: 2
+    workdir: ~/workdir/img0
+
   image1:
     type: docker
     lazy: false
     config:
       image: mul8/dummyfailure
       cpus: 2
+    workdir: ~/workdir/img1
 
   image2:
     type: docker
@@ -28,26 +44,13 @@ deployments:
     config:
       image: mul8/dummyfailure
       cpus: 2
-
-  image3:
-    type: docker
-    lazy: false
-    config:
-      image: mul8/dummyfailure
-      cpus: 2
-  
-  image4:
-    type: docker
-    lazy: false
-    config:
-      image: mul8/dummyfailure
-      cpus: 2
+    workdir: ~/workdir/img2
 
 failureManager:
   enabled: True
   type: default
   config:
-    max_retries: 10000
+    max_retries: 100
     retry_delay: 5
 
 scheduling:
@@ -64,4 +67,4 @@ bindingFilters:
 database:
   type: default
   config:
-    connection: /home/alberto/Work/Workflows/1000Genome/streamflow-wf/.streamflow/sqlite.db
+    connection: .streamflow/sqlite.db
